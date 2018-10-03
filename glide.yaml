@@ -2,7 +2,7 @@ package: github.com/waigani/diffparser
 import:
 - package: github.com/juju/errors
 testImport:
-- package: github.com/juju/testing
+- package: github.com/stretchr/testify/require
   subpackages:
   - checkers
 - package: gopkg.in/check.v1

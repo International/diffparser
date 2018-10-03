@@ -4,40 +4,29 @@
 package diffparser_test
 
 import (
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
+	"log"
 	"testing"
 
-	jt "github.com/juju/testing"
-	jc "github.com/juju/testing/checkers"
 	"github.com/International/diffparser"
-	gc "gopkg.in/check.v1"
 )
 
-func Test(t *testing.T) {
-	gc.TestingT(t)
-}
-
-type suite struct {
-	jt.CleanupSuite
-	rawdiff string
-	diff    *diffparser.Diff
-}
-
-var _ = gc.Suite(&suite{})
-
-func (s *suite) SetUpSuite(c *gc.C) {
+func rawDiff() string {
 	byt, err := ioutil.ReadFile("example.diff")
-	c.Assert(err, jc.ErrorIsNil)
-	s.rawdiff = string(byt)
+	if err != nil {
+		log.Fatal("could not find test file")
+	}
+	return string(byt)
 }
 
 // TODO(waigani) tests are missing more creative names (spaces, special
 // chars), and diffed files that are not in the current directory.
 
-func (s *suite) TestFileModeAndNaming(c *gc.C) {
-	diff, err := diffparser.Parse(s.rawdiff)
-	c.Assert(err, jc.ErrorIsNil)
-	c.Assert(diff.Files, gc.HasLen, 6)
+func TestFileModeAndNaming(t *testing.T) {
+	diff, err := diffparser.Parse(rawDiff())
+	require.Nil(t, err)
+	require.Len(t, diff.Files, 6)
 
 	for i, expected := range []struct {
 		mode     diffparser.FileMode
@@ -76,17 +65,17 @@ func (s *suite) TestFileModeAndNaming(c *gc.C) {
 		},
 	} {
 		file := diff.Files[i]
-		c.Logf("testing file: %v", file)
-		c.Assert(file.Mode, gc.Equals, expected.mode)
-		c.Assert(file.OrigName, gc.Equals, expected.origName)
-		c.Assert(file.NewName, gc.Equals, expected.newName)
+		t.Logf("testing file: %v", file)
+		require.Equal(t, file.Mode, expected.mode)
+		require.Equal(t, file.OrigName, expected.origName)
+		require.Equal(t, file.NewName, expected.newName)
 	}
 }
 
-func (s *suite) TestHunk(c *gc.C) {
-	diff, err := diffparser.Parse(s.rawdiff)
-	c.Assert(err, jc.ErrorIsNil)
-	c.Assert(diff.Files, gc.HasLen, 6)
+func TestHunk(t *testing.T) {
+	diff, err := diffparser.Parse(rawDiff())
+	require.Nil(t, err)
+	require.Len(t, diff.Files, 6)
 
 	expectedOrigLines := []diffparser.DiffLine{
 		{
@@ -140,15 +129,15 @@ func (s *suite) TestHunk(c *gc.C) {
 	origRange := file.Hunks[0].OrigRange
 	newRange := file.Hunks[0].NewRange
 
-	c.Assert(origRange.Start, gc.Equals, 1)
-	c.Assert(origRange.Length, gc.Equals, 4)
-	c.Assert(newRange.Start, gc.Equals, 1)
-	c.Assert(newRange.Length, gc.Equals, 4)
+	require.Equal(t, origRange.Start, 1)
+	require.Equal(t, origRange.Length, 4)
+	require.Equal(t, newRange.Start, 1)
+	require.Equal(t, newRange.Length, 4)
 
 	for i, line := range expectedOrigLines {
-		c.Assert(*origRange.Lines[i], gc.DeepEquals, line)
+		require.Equal(t, *origRange.Lines[i], line)
 	}
 	for i, line := range expectedNewLines {
-		c.Assert(*newRange.Lines[i], gc.DeepEquals, line)
+		require.Equal(t, *newRange.Lines[i], line)
 	}
 }
