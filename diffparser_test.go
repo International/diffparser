@@ -9,7 +9,7 @@ import (
 
 	jt "github.com/juju/testing"
 	jc "github.com/juju/testing/checkers"
-	"github.com/waigani/diffparser"
+	"github.com/International/diffparser"
 	gc "gopkg.in/check.v1"
 )
 
