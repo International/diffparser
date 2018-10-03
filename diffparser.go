@@ -124,13 +124,14 @@ func Parse(diffString string) (*Diff, error) {
 	var ADDEDCount int
 	var REMOVEDCount int
 	var inHunk bool
-	oldFilePrefix := "--- a/"
-	newFilePrefix := "+++ b/"
+	oldFilePrefix := regexp.MustCompile(`\A--- [a-z]/`)
+	newFilePrefix := regexp.MustCompile(`\A\+\+\+ [a-z]/`)
 
 	var diffPosCount int
 	var firstHunkInFile bool
 	// Parse each line of diff.
 	for _, l := range lines {
+		fmt.Printf("l is %s\n", l)
 		diffPosCount++
 		switch {
 		case strings.HasPrefix(l, "diff "):
@@ -147,10 +148,10 @@ func Parse(diffString string) (*Diff, error) {
 			file.Mode = DELETED
 		case l == "--- /dev/null":
 			file.Mode = NEW
-		case strings.HasPrefix(l, oldFilePrefix):
-			file.OrigName = strings.TrimPrefix(l, oldFilePrefix)
-		case strings.HasPrefix(l, newFilePrefix):
-			file.NewName = strings.TrimPrefix(l, newFilePrefix)
+		case oldFilePrefix.Match([]byte(l)):
+			file.OrigName = oldFilePrefix.ReplaceAllString(l,"$2")
+		case newFilePrefix.Match([]byte(l)):
+			file.NewName = newFilePrefix.ReplaceAllString(l,"$2")
 		case strings.HasPrefix(l, "@@ "):
 			if firstHunkInFile {
 				diffPosCount = 0

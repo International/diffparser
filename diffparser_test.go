@@ -6,25 +6,28 @@ package diffparser_test
 import (
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
-	"log"
 	"testing"
 
 	"github.com/International/diffparser"
 )
 
-func rawDiff() string {
-	byt, err := ioutil.ReadFile("example.diff")
+func rawDiff(t *testing.T, path string) string {
+	byt, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Fatal("could not find test file")
+		t.Fatalf("could not find test file %s", path)
 	}
 	return string(byt)
+}
+
+func exampleRawDiff(t *testing.T) string {
+	return rawDiff(t, "diffs/example.diff")
 }
 
 // TODO(waigani) tests are missing more creative names (spaces, special
 // chars), and diffed files that are not in the current directory.
 
 func TestFileModeAndNaming(t *testing.T) {
-	diff, err := diffparser.Parse(rawDiff())
+	diff, err := diffparser.Parse(exampleRawDiff(t))
 	require.Nil(t, err)
 	require.Len(t, diff.Files, 6)
 
@@ -72,8 +75,18 @@ func TestFileModeAndNaming(t *testing.T) {
 	}
 }
 
+func TestCanParseWithBranchNotAandB(t *testing.T) {
+	diff, err := diffparser.Parse(rawDiff(t, "diffs/not_a_and_b.txt"))
+	require.Nil(t, err)
+	require.Len(t, diff.Files, 2)
+	require.NotEqual(t, diff.Files[0].OrigName, "lib/git_diff.ex")
+	require.NotEqual(t, diff.Files[0].NewName, "lib/git_diff.ex")
+	require.NotEqual(t, diff.Files[1].OrigName, "lib/patch.ex")
+	require.NotEqual(t, diff.Files[1].NewName, "lib/patch.ex")
+}
+
 func TestHunk(t *testing.T) {
-	diff, err := diffparser.Parse(rawDiff())
+	diff, err := diffparser.Parse(exampleRawDiff(t))
 	require.Nil(t, err)
 	require.Len(t, diff.Files, 6)
 
