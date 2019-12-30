@@ -131,7 +131,6 @@ func Parse(diffString string) (*Diff, error) {
 	var firstHunkInFile bool
 	// Parse each line of diff.
 	for _, l := range lines {
-		fmt.Printf("l is %s\n", l)
 		diffPosCount++
 		switch {
 		case strings.HasPrefix(l, "diff "):
@@ -149,9 +148,9 @@ func Parse(diffString string) (*Diff, error) {
 		case l == "--- /dev/null":
 			file.Mode = NEW
 		case oldFilePrefix.Match([]byte(l)):
-			file.OrigName = oldFilePrefix.ReplaceAllString(l,"$2")
+			file.OrigName = oldFilePrefix.ReplaceAllString(l, "$2")
 		case newFilePrefix.Match([]byte(l)):
-			file.NewName = newFilePrefix.ReplaceAllString(l,"$2")
+			file.NewName = newFilePrefix.ReplaceAllString(l, "$2")
 		case strings.HasPrefix(l, "@@ "):
 			if firstHunkInFile {
 				diffPosCount = 0
